@@ -10,6 +10,7 @@ environments.staging = {
     'envName': 'staging'
 }
 
+
 //production (default)
 environments.production = {
     'httpPort': 5000,

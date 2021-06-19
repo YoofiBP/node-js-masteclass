@@ -34,7 +34,6 @@ httpsServer.listen(config.appEnvironment.httpsPort, () => {
 let unifiedServer = function(req, res) {
    //Get url and parse
    const parseUrl = url.parse(req.url, true);
-   console.log(parseUrl);
  
    //Get path from url
    const path = parseUrl.pathname;
