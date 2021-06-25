@@ -2,12 +2,14 @@
 
 //container for all environments
 const environments = {}
+const hashingSecret = 'hashingSecret'
 
 //staging (default)
 environments.staging = {
     'httpPort': 3000,
     'httpsPort': 3001,
-    'envName': 'staging'
+    'envName': 'staging',
+    hashingSecret
 }
 
 
@@ -15,7 +17,8 @@ environments.staging = {
 environments.production = {
     'httpPort': 5000,
     'httpsPort': 5001,
-    'envName': 'production'
+    'envName': 'production',
+    hashingSecret
 }
 
 //Determine which environment was passed as command line
