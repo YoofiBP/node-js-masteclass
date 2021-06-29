@@ -1,15 +1,17 @@
 //Create and export config variables
 
 //container for all environments
-const environments = {}
-const hashingSecret = 'hashingSecret'
+const environments = {};
+const hashingSecret = 'hashingSecret';
+const maxChecks = 5;
 
 //staging (default)
 environments.staging = {
     'httpPort': 3000,
     'httpsPort': 3001,
     'envName': 'staging',
-    hashingSecret
+    hashingSecret,
+    maxChecks
 }
 
 
@@ -18,7 +20,8 @@ environments.production = {
     'httpPort': 5000,
     'httpsPort': 5001,
     'envName': 'production',
-    hashingSecret
+    hashingSecret,
+    maxChecks
 }
 
 //Determine which environment was passed as command line
