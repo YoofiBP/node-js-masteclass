@@ -1,5 +1,7 @@
 const _data = require('../data');
 const helpers = require('../helpers');
+const serviceHandler = require('./utils');
+const tokens = require('./tokens');
 
 const validate = (data) => {
     const firstName = typeof(data.payload.firstName) === 'string' && data.payload.firstName.trim().length > 0 ? data.payload.firstName.trim() : false;
@@ -51,22 +53,35 @@ const post = (data, callback) => {
     }
 }
 
-
-//TODO: Allow only authenticated users to make GET request
 const get = (data, callback) => {
     let {phoneNumber} = JSON.parse(data.queryString);
-    phoneNumber = typeof(phoneNumber) === "string" && phoneNumber.trim().length === 10 ? phoneNumber : false;
-    if(!phoneNumber){
-        return callback(400, {error: 'required fields not present'})
+    //Auth
+    const {token} = data.headers;
+
+    if(!token){
+        return callback(401, {error: 'Unauthorized'})
     }
-    _data.read('users', phoneNumber, (err, data) => {
-        if(err){
-            return callback(400, {error: "user does not exist"});
+
+    tokens.verifyToken(token, phoneNumber, (tokenVerified) => {
+        if(!tokenVerified){
+            return callback(401, {error: 'Unauthorized'})
         }
-        //remove password from data
-        data.password && delete data.password;
-        callback(200, data);
-    }).then().then();
+
+        phoneNumber = typeof(phoneNumber) === "string" && phoneNumber.trim().length === 10 ? phoneNumber : false;
+        if(!phoneNumber){
+            return callback(400, {error: 'required fields not present'})
+        }
+        _data.read('users', phoneNumber, (err, data) => {
+            if(err){
+                return callback(400, {error: "user does not exist"});
+            }
+            //remove password from data
+            data.password && delete data.password;
+            callback(200, data);
+        }).then().catch();
+    })
+
+
 }
 
 const put = (data, callback) => {
@@ -108,23 +123,39 @@ const put = (data, callback) => {
 const _delete = (data, callback) => {
     const queryString = JSON.parse(data.queryString);
     const queryPhoneNumber = typeof(queryString.phoneNumber) === "string" && queryString.phoneNumber.trim().length === 10 ? queryString.phoneNumber : false;
-    if(!queryPhoneNumber){
-        return callback(400, {error: 'required fields not present'})
+
+    const {token} = data.headers;
+
+    if(!token){
+        return callback(401, {error: 'Unauthorized'})
     }
 
-    _data.read('users', queryPhoneNumber, (err) => {
-        if(err){
-            return callback(400, {error: 'record does not exist'});
+
+    tokens.verifyToken(token, queryPhoneNumber, (tokenVerified) => {
+        if (!tokenVerified) {
+            return callback(401, {error: 'Unauthorized'})
         }
 
-        _data.delete('users', queryPhoneNumber, (err) => {
-            if(!err){
-                callback(200, {success: 'record deleted successfully'})
-            } else {
-                callback(500, {error: 'error occurred attempting to delete record'})
+        if(!queryPhoneNumber){
+            return callback(400, {error: 'required fields not present'})
+        }
+
+        _data.read('users', queryPhoneNumber, (err) => {
+            if(err){
+                return callback(400, {error: 'record does not exist'});
             }
+
+            _data.delete('users', queryPhoneNumber, (err) => {
+                if(!err){
+                    callback(200, {success: 'record deleted successfully'})
+                } else {
+                    callback(500, {error: 'error occurred attempting to delete record'})
+                }
+            })
         })
     })
+
+
 }
 
 const _methodHandler = {
@@ -134,15 +165,6 @@ const _methodHandler = {
     delete: _delete
 }
 
-const users = (data, callback) => {
-    //Determine method
-    const acceptableMethods = ['get', 'post', 'put', 'delete'];
-    if(acceptableMethods.includes(data.method.toLowerCase()) > -1) {
-        return _methodHandler[data.method](data, callback);
-    } else {
-        callback(405);
-    }
-    callback(200, {});
-}
+const users = serviceHandler(_methodHandler);
 
 module.exports = users;

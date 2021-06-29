@@ -1,8 +1,5 @@
 const users = require('./users');
-//Define index
-const sample = (data, callback) => {
-    callback(406, { name: "sampleHandler" });
-}
+const tokens = require('./tokens');
 
 const notFound = (data, callback) => {
     callback(404);
@@ -15,10 +12,10 @@ const ping = (data, callback) => {
 
 
 const index = {
-    sample,
     notFound,
     ping,
-    users
+    users,
+    tokens
 };
 
 module.exports = index;

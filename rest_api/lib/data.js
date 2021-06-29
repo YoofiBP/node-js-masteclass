@@ -18,7 +18,6 @@ const create = async (directory, fileName, data, callback) => {
         }
         const stringData = JSON.stringify(data);
         try {
-            console.log('Success')
             await destination.writeFile(stringData);
         } catch (e) {
             return callback('Error Writing to new file')
